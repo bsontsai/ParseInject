@@ -7,16 +7,14 @@ import java.util.HashMap;
 import java.util.Map;
 public class Parser {
 
-    String operatorsFilepath = ".\\src\\main\\java\\org\\example\\operators.txt";
-    String inputFilepath = ".\\src\\main\\java\\org\\example\\testInput.java";
+    String operatorsFilepath = ".\\.idea\\src\\operators.txt";
+    String inputFilepath = ".\\.idea\\src\\testInput.java";
     Map<String, String> map = new HashMap<>();
     Map<String, Integer> countMap = new HashMap<>();
 
     public Parser() {
         try {
-//            File file = new File(filepath);
-//            System.out.println(file.exists());
-            BufferedReader br = new BufferedReader(new FileReader(operatorsFilepath));
+            BufferedReader br = new BufferedReader(new FileReader("C:\\Users\\benson\\Desktop\\research\\ParseInject\\.idea\\src\\operators.txt"));
             //build operator map
             String line = br.readLine();
             while (line != null) {
