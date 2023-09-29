@@ -2,20 +2,20 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 public class Parser {
 
-    String operatorsFilepath = ".\\src\\operators.txt";
-    String inputFilepath = ".\\src\\testInput.java";
+    String operatorsFilepath = ".\\operators.txt";
+    String inputFilepath = ".\\testInput.java";
     Map<String, String> map = new HashMap<>();
     Map<String, Integer> countMap = new HashMap<>();
 
     public Parser() {
         try {
-           File file = new File(operatorsFilepath);
-           System.out.println(file.exists());
-           System.out.println(System.getProperty("user.dir"));
+            System.out.println(System.getProperty("user.dir"));
             BufferedReader br = new BufferedReader(new FileReader(operatorsFilepath));
             //build operator map
             String line = br.readLine();
@@ -32,6 +32,8 @@ public class Parser {
 
             //open file to read
             br = new BufferedReader(new FileReader(inputFilepath));
+            PrintWriter pw = new PrintWriter("testOutput.java");
+            ArrayList<String> outputList = new ArrayList<>();
             line = br.readLine();
             while (line != null) {
                 System.out.println(line);
@@ -41,6 +43,7 @@ public class Parser {
                     continue;
                 }
                 //strip the strings
+                String originalLine = line;
                 line = stripStrings(line);
                 //go through the string in pairs of characters
                 for (int i = 0; i < line.length() - 1; i++) {
@@ -50,12 +53,20 @@ public class Parser {
                     //see if pair exists in map
                     if (map.containsKey(pair)) {
                         System.out.println("found pair: " + pair);
+                        //new counter
+                        pw.println("static int " + map.get(pair) + countMap.get(pair) + " = 0;");
+                        //write counter increment
+                        outputList.add(map.get(pair) + countMap.get(pair) + "++;");
                         countMap.put(pair, countMap.get(pair) + 1);
                         i++;
                     } else {
                         //check individual character
                         if (map.containsKey(first)) {
                             System.out.println("found single: " + first);
+                            //new counter
+                            pw.println("static int " + map.get(first) + countMap.get(first) + " = 0;");
+                            //write counter increment
+                            outputList.add(map.get(first) + countMap.get(first) + "++;");
                             countMap.put(first, countMap.get(first) + 1);
                         }
                     }
@@ -64,10 +75,22 @@ public class Parser {
                 String lastChar = String.valueOf(line.charAt(line.length() - 1));
                 if (map.containsKey(lastChar)) {
                     System.out.println("found single: " + lastChar);
+                    //new counter
+                    pw.println("static int " + map.get(lastChar) + countMap.get(lastChar) + " = 0;");
+                    //write counter increment
+                    outputList.add(map.get(lastChar) + countMap.get(lastChar) + "++;");
                     countMap.put(lastChar, countMap.get(lastChar) + 1);
                 }
+                //write original line
+                outputList.add(originalLine);
                 line = br.readLine();
             }
+            br.close();
+            //write all the counters at the start of file
+            for (String str : outputList) {
+                pw.println(str);
+            }
+            pw.close();
             System.out.println("countMap");
             System.out.println(countMap);
         } catch (Exception e) {
