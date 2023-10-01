@@ -1,3 +1,4 @@
+package java;
 static int assignment0 = 0;
 static int addition0 = 0;
 static int assignment1 = 0;
