@@ -1,0 +1,28 @@
+define keywords dictionary
+define operators dictionary
+
+declare stack for variable naming
+
+open file
+
+strip comments (assume prettifier can strip comments)
+
+for each line in file
+    strip strings
+    parse the string into tokens with string.split(' ')
+    remove all excess spaces
+
+    for each token in line
+        if keyword -> {
+            push keyword to stack and increment keyword counter in dictionary
+            decide if needed to declare static variable
+        } else -> {
+            go through token character by character and find operator
+            if operator -> {
+                increment operator counter in dictionary
+                write static variable declaration to file
+                lines.push(variable++)
+            }
+        }
+        lines.push(line)
+
