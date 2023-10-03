@@ -1,0 +1,13 @@
+#include <iostream>
+
+int main() {
+    std::cout << "Hello World!";
+    int i = 0;
+    i++;
+    String input;
+    for (int j = 0; j < i; j++) {
+        std::cin >> input;
+        std::cout << input;
+    }
+    return 0;
+}

@@ -1,0 +1,23 @@
+int assignment0 = 0;
+int increment0 = 0;
+int assignment1 = 0;
+int lesser0 = 0;
+int increment1 = 0;
+#include <iostream>
+
+int main() {
+    std::cout << "Hello World!";
+assignment0++;
+    int i = 0;
+increment0++;
+    i++;
+    String input;
+assignment1++;
+lesser0++;
+increment1++;
+    for (int j = 0; j < i; j++) {
+        std::cin >> input;
+        std::cout << input;
+    }
+    return 0;
+}
