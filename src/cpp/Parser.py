@@ -30,7 +30,7 @@ Extract cpp keywords and stores them in a dictionary
 ex: 'new'
 '''
 
-keywords = {}
+keywords = {} # keyword counter
 
 keywords_path = 'C:\Dennis\Purdue\Junior Year\Algorithm Analysis\ParseInjectCPP\keywords.txt'
 keywords_file =open(keywords_path, 'r')

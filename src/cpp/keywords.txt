@@ -1,2 +1,7 @@
 for
 while
+if
+else if
+else
+do
+switch
