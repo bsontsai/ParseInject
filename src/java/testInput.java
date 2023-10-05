@@ -10,6 +10,15 @@ public class testInput {
         a++;
         a--;
         a++;
+        for (int i = 0; i < 10; i++) {
+            a++;
+            if (a == 2) {
+                a++;
+            }
+        }
+        for (int i = 0; i < 10; i++) {
+            a++;
+        }
 
     }
 
