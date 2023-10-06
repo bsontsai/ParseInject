@@ -96,6 +96,12 @@ java_operators = {
 infile_path = "C:\\Users\\benson\\Desktop\\school\\research\\ParseInject\\src\\java\\testInput.java"
 outfile_path = "C:\\Users\\benson\\Desktop\\school\\research\\ParseInject\\src\\java\\testOutput.java"
 
+variable_declarations = []
+output_lines = []
+name_stack = []
+#dictionary to specifically hold the code that run in each iteration of a for loop
+loop_code = {}
+
 def strip_strings(line):
     append = True
     modded_line = ""
@@ -116,9 +122,20 @@ def get_var_name(arg):
         var_name += part + "_"
     return var_name + arg
 
-variable_declarations = []
-output_lines = []
-name_stack = []
+def insert(op):
+    var_name = get_var_name(java_operators[op][0] + str(java_operators[op][1]))
+    variable_declarations.append(var_name)
+    # print("var_name = " + var_name + ", for_control = " + str(for_control) + ", semicolon_counter = " + str(semicolon_counter))
+    if ((for_control and semicolon_counter > 0) or (while_control and while_condition_start)): #add only if it is in between the first ; and )
+        if (name_stack[-1] in loop_code.keys()):
+            loop_code[name_stack[-1]].append(var_name + "++;\n")
+        else:
+            loop_code[name_stack[-1]] = [var_name + "++;\n"]
+    else:
+        output_lines.append(var_name + "++;\n")
+    java_operators[op][1] += 1
+
+
 
 #open input file
 infile = open(infile_path, "r")
@@ -129,9 +146,21 @@ for line in infile_lines:
     #strip strings and leading/trailing whitespaces
     modded_line = strip_strings(line).strip()
     tokens = modded_line.split()
+    
+    for_control = False
+    semicolon_counter = 0
+    while_control = False
+    while_condition_start = False
+
     for token in tokens:
         if (token == "}"):
             if name_stack:
+                #check if it marks the end of a for or while
+                if ("for" in name_stack[-1] or "while" in name_stack[-1]):
+                    #add the lines
+                    for code in loop_code[name_stack[-1]]:
+                        output_lines.append(code)
+                    del loop_code[name_stack[-1]]
                 name_stack.pop()
             continue
         if (token in java_keywords.keys()):
@@ -140,36 +169,54 @@ for line in infile_lines:
                 #push to stack
                 name_stack.append(token + str(java_keywords[token]))
                 java_keywords[token] += 1
+                if (token == "for"):
+                    #activate for_control
+                    for_control = True
+                elif (token == "while"):
+                    #activate while_control
+                    while_control = True
         elif (token in java_operators.keys()):
-            var_name = get_var_name(java_operators[token][0] + str(java_operators[token][1]))
-            variable_declarations.append(var_name)
-            output_lines.append(var_name + "++;\n")
-            java_operators[token][1] += 1
+            insert(token)
         else:
             #look through token two chars at a time
-            pairs = [token[i:i+2] for i in range(0, len(token) - 1)]
-            for pair in pairs:
-                if (pair in java_operators.keys()):
-                    var_name = get_var_name(java_operators[pair][0] + str(java_operators[pair][1]))
-                    variable_declarations.append(var_name)
-                    output_lines.append(var_name + "++;\n")
-                    java_operators[pair][1] += 1
-                else:
-                    #check individual char
-                    char = pair[0]
-                    if (char in java_keywords.keys()):
-                        print("found single: " + char)
-                        var_name = get_var_name(java_operators[char][0] + str(java_operators[char][1]))
-                        variable_declarations.append(var_name)
-                        output_lines.append(var_name + "++;\n")
-                        java_operators[char][1] += 1
+            if (len(token) > 1):
+                pairs = [token[i:i+2] for i in range(0, len(token) - 1)]
+                for pair in pairs:
+                    if (pair in java_operators.keys()):
+                        insert(pair)
+                    else:
+                        #check individual char
+                        char = pair[0]
+                        if (for_control):
+                            if (char == ";"):
+                                semicolon_counter += 1
+                            elif (char == ")" and semicolon_counter == 2): #end of for()
+                                for_control = False
+                                semicolon_counter = 0
+                        if (while_control):
+                            if (char == "("):
+                                while_condition_start = True
+                            elif (char == ")"):
+                                while_condition_start = False
+                                while_control = False
+                        if (char in java_keywords.keys()):
+                            insert(char)
             #check last char
             char = token[-1]
+            if (for_control):
+                if (char == ";"):
+                    semicolon_counter += 1
+                elif (char == ")" and semicolon_counter == 2): #end of for()
+                    for_control = False
+                    semicolon_counter = 0
+            if (while_control):
+                if (char == "("):
+                    while_condition_start = True
+                elif (char == ")"):
+                    while_condition_start = False
+                    while_control = False
             if (char in java_keywords.keys()):
-                var_name = get_var_name(java_operators[char][0] + str(java_operators[char][1]))
-                variable_declarations.append(var_name)
-                output_lines.append(var_name + "++;\n")
-                java_operators[char][1] += 1
+                insert(char)
     
     #write original line
     output_lines.append(line)
