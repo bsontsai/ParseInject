@@ -1,0 +1,9 @@
+#include <iostream>
+int main() {
+    int k = 0;
+    while (++k < i) {
+      std::cout << k;
+    }
+    int j = 0;
+    return 0;
+}

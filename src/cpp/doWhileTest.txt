@@ -1,14 +1,8 @@
-int assignment0 = 0;
-int decrement0 = 0;
-int greater0 = 0;
 #include <iostream>
 int main() {
-assignment0++;
     int k = 100;
     do {
-decrement0++;
         k--;
-greater0++;
     } while (k > 0);
     return 0;
 }

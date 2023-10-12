@@ -1,16 +1,9 @@
 #include <iostream>
 int main() {
     int i = 100;
+    i++;
     for (int j = 0; j < i; j++) {
         std::cout >> j;
     }
-    int k = 0;
-    while (k < i) {
-      k++;
-    }
-
-    do {
-        k--;
-    } while (k > 0);
     return 0;
 }
