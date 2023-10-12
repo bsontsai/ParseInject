@@ -43,14 +43,13 @@ for line in keywords_lines:
     keywords[line.strip()] = 0
 
 
-var_stack = []
 
 '''
 does the reading and injecting
 '''
 
 
-source_code_path = 'C:\Dennis\Purdue\Junior Year\Algorithm Analysis\ParseInjectCPP\doWhileTest.txt'
+source_code_path = 'C:\Dennis\Purdue\Junior Year\Algorithm Analysis\ParseInject\src\cpp\doubelForTest.txt'
 source_code_file = open(source_code_path, 'r')
 source_code_lines = source_code_file.readlines()
 
@@ -63,6 +62,9 @@ append_in_while = []
 for_control = False  # true if parser in for loop line
 while_control = False  # true if parser in while loop line
 do_while_control = False  # true if parser in do while loop
+
+var_stack = [] # stack to keep track fo names
+loop_code = {} #dicitonary for code in loop
 
 for line in source_code_lines:
 
@@ -88,9 +90,6 @@ for line in source_code_lines:
         append_in_for = []
 
     # 3: we just exited a do while loop so we append in line before while loop statement
-    print(while_control)
-    print(do_while_control)
-    print(len(append_in_while))
 
     if  (not while_control) and do_while_control and len(append_in_while) != 0:
 
@@ -112,10 +111,22 @@ for line in source_code_lines:
 
         loop_counter = 0
 
+        # pop out of keyword if ncecessary
+
+        if t =='{':
+            if var_stack:
+                if ("for" in var_stack[-1] or "while" in var_stack[-1]):
+                    # add the lines
+                    for code in loop_code[var_stack[-1]]:
+                        lines_to_inject.append(code)
+                    del loop_code[var_stack[-1]]
+                var_stack.pop()
+                continue
+
         # case with keywords (for and while loops)
         if t in keywords.keys():
             #print(f'found keyword {t} in code')
-            var_stack.append(keywords[t])
+            var_stack.append(t + str(keywords[t]))
             keywords[t] += 1
             if t == 'for':
                 for_control = True
@@ -148,6 +159,11 @@ for line in source_code_lines:
                             append_in_for.append(f"{operators_name[t] + str(operators_count[t])}++;\n")  # increment
                             operators_count[t] += 1  # increase count for this operator
 
+                            if var_stack[-1] in loop_code.keys():
+                                loop_code[var_stack[-1]].append(operators_name[t] + "++;\n")
+                            else:
+                                loop_code[var_stack[-1]] = operators_name[t] + "++;\n"
+
                     ## cheating right now for checking increament and decreament
                 else: # when token is in form {t}++ and {t}--
                     if "--" in t:
@@ -171,7 +187,7 @@ for line in source_code_lines:
             elif while_control:
                 #print(t)
                 if t in operators_name.keys():
-                    print(f'found operator {t} in code')
+                    #print(f'found operator {t} in code')
 
                     static_declaration.append(f"int {operators_name[t] + str(operators_count[t])} = 0;\n") # add counter
                     append_in_while.append(f"{operators_name[t] + str(operators_count[t])}++;\n") # increment

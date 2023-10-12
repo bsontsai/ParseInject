@@ -1,14 +1,23 @@
 int assignment0 = 0;
-int decrement0 = 0;
-int greater0 = 0;
+int lesser0 = 0;
+int increment0 = 0;
+int assignment1 = 0;
+int lesser1 = 0;
+int increment1 = 0;
 #include <iostream>
 int main() {
 assignment0++;
-    int k = 100;
-    do {
-decrement0++;
-        k--;
-greater0++;
-    } while (k > 0);
+lesser++;
+    for (int i = 0; i < 100; i++) {
+lesser0++;
+increment0++;
+assignment1++;
+lesser++;
+        for (int j = 0; j < i; j++) {
+lesser1++;
+increment1++;
+           std::cout << j;
+        }
+    }
     return 0;
 }
