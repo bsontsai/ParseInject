@@ -1,3 +1,5 @@
+import re
+
 java_keywords = {
     "abstract": 0,
     "assert": 0,
@@ -93,6 +95,8 @@ java_operators = {
     "->": ["lambdaExpression", 0],
 }
 
+func_calls = {}
+
 infile_path = "C:\\Users\\benson\\Desktop\\school\\research\\ParseInject\\src\\java\\testInput.java"
 outfile_path = "C:\\Users\\benson\\Desktop\\school\\research\\ParseInject\\src\\java\\testOutput.java"
 
@@ -135,7 +139,13 @@ def insert(op):
         output_lines.append(var_name + "++;\n")
     java_operators[op][1] += 1
 
-
+def insert_func_call(func_name):
+    if (func_name not in func_calls.keys()):
+        func_calls[func_name] = 0
+    var_name = get_var_name(func_name + str(func_calls[func_name]))
+    variable_declarations.append(var_name)
+    output_lines.append(var_name + "++;\n")
+    func_calls[func_name] += 1
 
 #open input file
 infile = open(infile_path, "r")
@@ -151,6 +161,10 @@ for line in infile_lines:
     semicolon_counter = 0
     while_control = False
     while_condition_start = False
+    #used to detect function calls, assume there is no space between function name and starting parenthesis
+    is_function = False
+    func_name = ""
+    check_token = False
 
     for token in tokens:
         if (token == "}"):
@@ -162,8 +176,30 @@ for line in infile_lines:
                         output_lines.append(code)
                     del loop_code[name_stack[-1]]
                 name_stack.pop()
-            continue
-        if (token in java_keywords.keys()):
+        elif (re.match(r"[\s\S]+[(][\s\S]*", token)):
+            #marks the start of a function
+            is_function = True
+            func_name = token[:token.find("(")]
+            if (re.match(r"[\s\S]+[(][\s\S]*[)]", token)): #100% a function
+                check_token = True
+        elif (is_function): #in or after parenthesis
+            if (token == ")"):
+                #check if next token is {
+                check_token = True
+            elif (check_token):
+                if (token == "{"):
+                    #this is a function definition, push to var stack
+                    name_stack.append(func_name)
+                else:
+                    #not a function definition, therefore a function call, make var and increment
+                    insert_func_call(func_name)
+                
+                is_function = False
+                func_name = ""
+                check_token = False
+
+
+        elif (token in java_keywords.keys()):
             #only deal with for, while, and if for now
             if (token == "for" or token == "while" or token == "if"):
                 #push to stack
@@ -217,14 +253,19 @@ for line in infile_lines:
                     while_control = False
             if (char in java_keywords.keys()):
                 insert(char)
-    
+            
+    #check if still looking for next token to determine function call/function def
+    if (is_function and check_token):
+        #automatically a function call
+        insert_func_call(func_name)
     #write original line
     output_lines.append(line)
 
 #write to output file
 outfile = open(outfile_path, "w")
+outfile.write("package java;\npublic class testOutput {\n")
 for line in variable_declarations:
     outfile.write("static int " + line + " = 0;\n")
 for line in output_lines:
     outfile.write(line)
-
+outfile.write("}")
