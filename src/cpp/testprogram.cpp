@@ -2,6 +2,8 @@
 #include <cstdlib> 
 #include <ctime>
 
+// this c++ file shows single loop and two double loops
+
 int main() {
     srand(static_cast<unsigned int>(time(0))); // seed random number generator
 
