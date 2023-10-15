@@ -1,6 +1,9 @@
 #include<iostream>
 using namespace std;
 
+// this c++ file uses a recursive method to get fibonacci numbers
+// it is not recommended to put n above 30
+
 int fibonacci(int n) {
     if (n <= 1)
         return n;
