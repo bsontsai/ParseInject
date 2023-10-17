@@ -33,6 +33,7 @@ To-do:
 1. The code automatically compiles C program, grep results and parse it. But manual change of N should be added too.
 2. Should number of operations each line be counted? Theoretically they should be scalar but not sure.
 3. Regression based on the given data.
+4. Potentially: segment the array into different parts to give students feeback on which part went overboard.
 """
 
 def run_cpp_coverage(cpp_file):
