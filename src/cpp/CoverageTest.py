@@ -36,6 +36,19 @@ To-do:
 4. Potentially: segment the array into different parts to give students feeback on which part went overboard.
 """
 
+# helper function to record run time
+# not to be confused with runtime.
+def record_runtime(func):
+    def wrapper(*args, **kwargs):
+        start_time = time.time()
+        result = func(*args, **kwargs)
+        end_time = time.time()
+        print(f"Runtime of {func.__name__} is {end_time - start_time} seconds")
+        return result
+    # if need to record runtime, add @record_runtime in front of functions
+    return wrapper
+
+# does the code coverage.
 def run_cpp_coverage(cpp_file):
     " start of testing section "
     # Remove test commands for official use
