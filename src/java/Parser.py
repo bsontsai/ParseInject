@@ -99,8 +99,10 @@ func_calls = {}
 
 infile_path = "C:\\Users\\benson\\Desktop\\school\\research\\ParseInject\\src\\java\\testInput.java"
 outfile_path = "C:\\Users\\benson\\Desktop\\school\\research\\ParseInject\\src\\java\\testOutput.java"
+runfile_path = "C:\\Users\\benson\\Desktop\\school\\research\\ParseInject\\src\\java\\Runner.java"
 
-variable_declarations = []
+
+variables = []
 output_lines = []
 name_stack = []
 #dictionary to specifically hold the code that run in each iteration of a for loop
@@ -128,7 +130,7 @@ def get_var_name(arg):
 
 def insert(op):
     var_name = get_var_name(java_operators[op][0] + str(java_operators[op][1]))
-    variable_declarations.append(var_name)
+    variables.append(var_name)
     # print("var_name = " + var_name + ", for_control = " + str(for_control) + ", semicolon_counter = " + str(semicolon_counter))
     if ((for_control and semicolon_counter > 0) or (while_control and while_condition_start)): #add only if it is in between the first ; and )
         if (name_stack[-1] in loop_code.keys()):
@@ -143,7 +145,7 @@ def insert_func_call(func_name):
     if (func_name not in func_calls.keys()):
         func_calls[func_name] = 0
     var_name = get_var_name(func_name + str(func_calls[func_name]))
-    variable_declarations.append(var_name)
+    variables.append(var_name)
     output_lines.append(var_name + "++;\n")
     func_calls[func_name] += 1
 
@@ -176,27 +178,29 @@ for line in infile_lines:
                         output_lines.append(code)
                     del loop_code[name_stack[-1]]
                 name_stack.pop()
-        elif (re.match(r"[\s\S]+[(][\s\S]*", token)):
-            #marks the start of a function
-            is_function = True
-            func_name = token[:token.find("(")]
-            if (re.match(r"[\s\S]+[(][\s\S]*[)]", token)): #100% a function
-                check_token = True
-        elif (is_function): #in or after parenthesis
-            if (token == ")"):
-                #check if next token is {
-                check_token = True
-            elif (check_token):
-                if (token == "{"):
-                    #this is a function definition, push to var stack
-                    name_stack.append(func_name)
-                else:
-                    #not a function definition, therefore a function call, make var and increment
-                    insert_func_call(func_name)
+
+        #detect function calls
+        # elif (re.match(r"[\s\S]+[(][\s\S]*", token)):
+        #     #marks the start of a function
+        #     is_function = True
+        #     func_name = token[:token.find("(")]
+        #     if (re.match(r"[\s\S]+[(][\s\S]*[)]", token)): #100% a function
+        #         check_token = True
+        # elif (is_function): #in or after parenthesis
+        #     if (token == ")"):
+        #         #check if next token is {
+        #         check_token = True
+        #     elif (check_token):
+        #         if (token == "{"):
+        #             #this is a function definition, push to var stack
+        #             name_stack.append(func_name)
+        #         else:
+        #             #not a function definition, therefore a function call, make var and increment
+        #             insert_func_call(func_name)
                 
-                is_function = False
-                func_name = ""
-                check_token = False
+        #         is_function = False
+        #         func_name = ""
+        #         check_token = False
 
 
         elif (token in java_keywords.keys()):
@@ -263,9 +267,28 @@ for line in infile_lines:
 
 #write to output file
 outfile = open(outfile_path, "w")
-outfile.write("package java;\npublic class testOutput {\n")
-for line in variable_declarations:
-    outfile.write("static int " + line + " = 0;\n")
+outfile.write("public class testOutput {\n")
+for var in variables:
+    outfile.write("public static int " + var + " = 0;\n")
 for line in output_lines:
     outfile.write(line)
 outfile.write("}")
+
+#generate run file
+runfile = open(runfile_path, "w")
+runfile.write("import java.util.ArrayList;\n"
+               + "public class Runner {\n"
+               + "    public static void main(String[] args) throws IllegalArgumentException, IllegalAccessException, NoSuchFieldException, SecurityException {\n"
+               + "        testOutput test = new testOutput();\n"
+               + "        ArrayList<String> varList = new ArrayList<>();\n"
+               )
+for var in variables:
+    runfile.write("        varList.add(\"" + var + "\");\n")
+runfile.write("        test.testInput();\n"
+              + "        for (String var : varList) {\n"
+              + "            System.out.println(var + \" = \" + testOutput.class.getField(var).get(testOutput.class));\n"
+              + "        }\n"
+              )
+
+
+runfile.write("    }\n}")

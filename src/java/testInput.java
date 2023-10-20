@@ -17,9 +17,4 @@ public void testInput() {
         a++;
     }
     
-    foo();
-    bar() {
-        //do something
-        something();
-    }
 }
