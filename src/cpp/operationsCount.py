@@ -9,6 +9,7 @@ Identifies operations and number of time operations is done on each line. Operat
 Also identifies the number of time certain keywords appears
 
 TODO: combine function checking an name extraction
+TODO
 
 '''
 
