@@ -35,7 +35,7 @@ for line in operators_lines:
 '''
 '''
 
-def getOperatorsOnLine(line, line_counter, line_operator_dict, bracket_stack):
+def getOperators(line, line_counter, line_operator_dict, bracket_stack):
     i = 0
     while i < (len(line) - 1):
         char1 = line[i]
@@ -80,48 +80,8 @@ def getOperatorsOnLine(line, line_counter, line_operator_dict, bracket_stack):
             i += 1
 
 
-def getOpsInString(line):
-    i = 0
-    ops = {}
-    while i < (len(line) - 1):
-        char1 = line[i]
-        if char1 == ' ':  # slight optimization
-            i += 1
-            continue
-        char2 = line[i + 1]
-
-        c = char1 + char2
-
-        if c == '//':
-            break
-
-        elif c in operators:  ## if c is an operator
-            i += 2  # we skip char 2 because it's already used
-
-            try:
-                ops[c] += 1
-            except KeyError:
-                ops[c] = 1
-
-        elif c == '<<' or c == '>>':  ## special cases to take care of
-            i += 1
-
-        elif char1 in operators:  ## if char1 is an operator
-            i += 1
-
-            try:
-                ops[char1] += 1
-            except KeyError:
-                ops[char1] = 1
-
-        else:  # if c1 and char are not operators
-            i += 1
-
-    return ops
-
 '''
 list with all the special keywords we need to track
-will add entire line to dictionary if line has for loop
 '''
 
 keywords = ['for', '?', '#include']
@@ -144,7 +104,10 @@ def getKeywords(line, line_counter, special_dict):
                 try:
                     if line[location + 3] == '(' or line[location + 4] == '(':
 
-                        special_dict[line_counter] = line
+                        try:
+                            special_dict[line_counter][keyword] += 1
+                        except KeyError:
+                            special_dict[line_counter][keyword] = 1
                 except:
                     continue
             else:
@@ -211,70 +174,6 @@ def extractFuncName(line):
     return match
 
 
-coverageInfo = {}
-
-coverageInfo[1] = 1
-coverageInfo[2] = 1
-coverageInfo[3] = 1
-coverageInfo[4] = 0
-coverageInfo[5] = 1
-coverageInfo[6] = 1
-coverageInfo[7] = 1
-coverageInfo[8] = 1
-coverageInfo[9] = 0
-coverageInfo[10] = 51
-coverageInfo[11] = 5050
-coverageInfo[12] = 5000
-coverageInfo[13] = 0
-coverageInfo[14] = 0
-coverageInfo[15] = 2
-coverageInfo[16] = 0
-
-def getTotalOps(operatorsByLine, keywords_dict, coverageInfo):
-
-    totalOps = {}
-
-    assert(len(coverageInfo) == len(operatorsByLine))
-
-    for line_num, times_ran in coverageInfo.items():
-
-        if keywords_dict[line_num]: ## there's keyword on this line
-
-            if str(keywords_dict[line_num]).find("for") > -1: ## for loop
-
-                tokens = keywords_dict[line_num].split(';')
-
-                ## form of: for (___;____;___)
-
-                for i in range(3):
-
-                    ops_in_token = getOpsInString(tokens[i])
-
-                    if i == 0: # for (we are here; ___ ; ___)
-
-                        for op, count in ops_in_token.items():
-
-                            try:
-                                totalOps[op] += (count * 1)
-                            except KeyError:
-                                totalOps[op] = (count * 1)
-                    else:
-                        for op, count in ops_in_token.items():
-
-                            try:
-                                totalOps[op] += (count * times_ran)
-                            except KeyError:
-                                totalOps[op] = (count * times_ran)
-
-
-        else: ## regular operations
-
-            for op, appearance in operatorsByLine[line_num].items():
-                try:
-                    totalOps[op] += appearance * times_ran
-                except KeyError:
-                    totalOps[op] = appearance * times_ran
-    return totalOps
 
 '''
 reads in files
@@ -284,7 +183,7 @@ line_operator_dict = {} ## each key is the line number, corresponds to a diction
 special_dict = {} ## each key is the line number, corresponds to a dictionary of any special operators like for
 function_dict = {} ## each key is function name, corresponding to a tuple/length 2 list storing start and end of function
 
-source_code_path = 'C:\Dennis\Purdue\Junior Year\Algorithm Analysis\ParseInject\src\cpp\\testprogram3.cpp'
+source_code_path = 'C:\Dennis\Purdue\Junior Year\Algorithm Analysis\ParseInject\src\cpp\\testprogram2.cpp'
 source_code_file = open(source_code_path, 'r')
 source_code_lines = source_code_file.readlines()
 
@@ -303,7 +202,7 @@ for line in source_code_lines:
 
     line_operator_dict[line_counter] = dict()
 
-    getOperatorsOnLine(line, line_counter, line_operator_dict, bracket_stack)
+    getOperators(line, line_counter, line_operator_dict, bracket_stack)
 
     ### check for any special operators
 
@@ -354,8 +253,3 @@ print('Functions')
 for key, value in function_dict.items():
     print(key)
     print(value)
-
-
-total_ops = getTotalOps(line_operator_dict, special_dict, coverageInfo)
-
-print(total_ops)
