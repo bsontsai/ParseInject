@@ -115,6 +115,48 @@ def run_cpp_coverage(cpp_file):
 
     return coverage_info
 
+def check_regression(x, y, reg_type):
+    # Perform linear regression
+    slope, intercept, r_val, p_val, std_err = stats.linregress(x, y)
+    line_err = {'reg': "n", 'value':r_val**2}
+
+    # Perform quadratic regression
+    quad_y = np.sqrt(y)
+    slope, intercept, r_val, p_val, std_err = stats.linregress(x, quad_y)
+    quad_err = {'reg': "n^2", 'value': r_val ** 2}
+
+    # Perform cubic regression
+    cub_y = np.cbrt(y)
+    slope, intercept, r_val, p_val, std_err = stats.linregress(x, cub_y)
+    cub_err = {'reg': "n^3", 'value': r_val ** 2}
+
+    # Perform exponential regression
+    expo2_y = np.log2(y)
+    slope, intercept, r_val, p_val, std_err = stats.linregress(x, expo2_y)
+    expo_err = {'reg': "2^n", 'value': r_val ** 2}
+
+    # Perform inverse regression
+    inver_x = np.reciprocal(x)
+    slope, intercept, r_val, p_val, std_err = stats.linregress(inver_x, y)
+    inver_err = {'reg': "1/n", 'value': r_val ** 2}
+
+    error = list([line_err, quad_err, cub_err, expo_err, inver_err])
+
+    biggest = 0
+    pattern = "none"
+    for item in error:
+        print(item.get('reg') + ": "+ str(item.get('value')))
+        if item.get('value') > biggest:
+            pattern = item.get('reg')
+            biggest = item.get('value')
+
+    print("pattern is " + pattern)
+    print("You asked: is the pattern "+reg_type)
+    if pattern is reg_type:
+        print("Yes, it is")
+    else:
+        print("No, it is not")
+
 if __name__ == '__main__':
     # Get the coverage info by parsing gcov files
     coverage_info = run_cpp_coverage(cpp_file)
@@ -133,6 +175,7 @@ if __name__ == '__main__':
     # examples are in discord.
     # manual_data = [3, 3, 5, 9, 15, 25, 41, 67, 109, 177, 287, 465, 753, 1219, 1973]
     # manual_data_x = [1 * (i+1) for i in range(len(manual_data))]
+    check_regression(manual_data_x, manual_data, "n^2")
     # plt.plot(manual_data_x, manual_data)
     # plt.show()
     
