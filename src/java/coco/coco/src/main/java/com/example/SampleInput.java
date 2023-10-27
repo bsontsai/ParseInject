@@ -1,9 +1,8 @@
 package com.example;
-public class TestInput {
-    public void testInput() {
+public class SampleInput {
+    public void test() {
         String filepath = ".\\src\\main\\java\\org\\example\\operators.txt";
 
-        System.out.println("test call");
         int a = 3;
         a++;
         a--;
