@@ -8,8 +8,9 @@ Author: Dennis Hsieh
 Identifies operations and number of time operations is done on each line. Operators are according to operators.txt
 Also identifies the number of time certain keywords appears
 
-TODO: combine function checking an name extraction
-TODO
+TODO: combine function checking and name extraction
+TODO: handle ternary operator
+TODO: handle edge cases see desc for getOpsInString()
 
 '''
 
@@ -18,22 +19,28 @@ TODO
 Reads all the operators according to operators.txt into a list
 '''
 
-operators_path = 'C:\Dennis\Purdue\Junior Year\Algorithm Analysis\ParseInjectCPP\operators.txt'
-operators_file = open(operators_path, 'r')
+operators = []
 
-operators_lines = operators_file.readlines()
+def getAllOperators():
 
-operators = [] ## operator stores all the operators
+    operators_path = 'C:\Dennis\Purdue\Junior Year\Algorithm Analysis\ParseInjectCPP\operators.txt'
+    operators_file = open(operators_path, 'r')
 
-for line in operators_lines:
+    operators_lines = operators_file.readlines()
 
-    op_and_name = line.split(',')
-    op = op_and_name[0].strip()
-    name = op_and_name[1].strip()
-    operators.append(op)
+    for line in operators_lines:
+
+        op_and_name = line.split(',')
+        op = op_and_name[0].strip()
+        name = op_and_name[1].strip()
+        operators.append(op)
 
 
 '''
+gets all the operators on this line
+returns a dictionary
+key: line number
+value: dictionary of operators on the line where the key is the operator and value is the times it appeared
 '''
 
 def getOperatorsOnLine(line, line_counter, line_operator_dict, bracket_stack):
@@ -80,6 +87,14 @@ def getOperatorsOnLine(line, line_counter, line_operator_dict, bracket_stack):
 
             i += 1
 
+'''
+returns a dictionary of operators on string represented by line
+key: operators:
+value: occurrences 
+
+will count operators in cases such as: srand(static_cast<unsigned int>(time(0)));
+note this is legal: bool a = i < j > k;
+'''
 
 def getOpsInString(line):
     i = 0
@@ -231,6 +246,12 @@ coverageInfo[14] = 0
 coverageInfo[15] = 2
 coverageInfo[16] = 0
 
+'''
+gets the total times each operation is done
+keys: operator
+value: times done
+'''
+
 def getTotalOps(operatorsByLine, keywords_dict, coverageInfo):
 
     totalOps = {}
@@ -295,6 +316,7 @@ do_while_control = False  # true if parser in do while loop
 function_control = False # true if parser in function
 bracket_stack = [] # stack for the brackets
 func_name = "" #name of function
+getAllOperators()
 
 line_counter = 1
 
