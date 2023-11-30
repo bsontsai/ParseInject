@@ -1,5 +1,6 @@
 import os
 
+print("Running Setup.py...\n")
 # get test cases
 testcasesfile = open("src\\java\\testcases.txt", "r")
 testcases = []

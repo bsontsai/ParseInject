@@ -1,4 +1,6 @@
 import os
+
+print("Running HTMLParser...\n")
 def find_all(a_str, sub):
     start = 0
     while True:
