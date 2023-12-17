@@ -1,2 +1,2 @@
 # ParseInject
-Parses operations and adds counters for each operation. Helps finding the ground truth for analyzing algorithm runtime programatically.
+Aims to automatically derive the runtime of C++, Java, and Python programs, through parsing cov-test results, code injections, and automatic regressions.
