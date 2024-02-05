@@ -47,50 +47,42 @@ def record_runtime(func):
         return result
     # if need to record runtime, add @record_runtime in front of functions
     return wrapper
-
-# does the code coverage.
-def run_cpp_coverage(cpp_file):
-    " start of testing section "
-    # Remove test commands for official use
     
+# prepare the code coverage
+def prepare_cpp_coverage(cpp_file):
     code_command = f"chcp 65001"
     subprocess.call(code_command, shell=True)
     # Turn GBK to UTF-8
-    # comment out this the call if running on US computer.
-    # Or if the computer is already running on English Windows system
+    # Remove or comment out this line if running on US computer.
 
     test_command = f"chdir"
     # subprocess.call(test_command, shell=True)
-    # Test command to see if the code gets current directory, 
-    # remove if not running on Windows. Linux equivalent: pwd
+    # Test command, remove if not running on Windows
 
     test_command = f"ls"
     # subprocess.call(test_command, shell=True)
-    # Would not work on Windows system.
+    # Would not work on Windows
 
     test_command = f"dir"
     # subprocess.call(test_command, shell=True)
-    # Equivalent of ls on Linux,
-    # uncomment if need to see if pycharm have writing permissions
-    # compare directory now with after compilation.
+    # Equivalent of ls on Linux
 
     test_command = gpp_path + f"g++ --version"
     # subprocess.call(test_command, shell=True)
     # Is gcc installed?
-    # If g++ is added to PATH, then the app_path is not needed
-    
-    " end of testing section "
-    
+
     # Compile the .cpp file with g++
     compile_command = gpp_path + f"g++ -fprofile-arcs -ftest-coverage -O0 -o {output_name} {cpp_file}"
     subprocess.call(compile_command, shell=True)
 
     test_command = f"dir"
     # subprocess.call(test_command, shell=True)
-    # used to check if excuatble is created, if not, check write premission.
+
+# does the code coverage.
+def run_cpp_coverage(cpp_file, input_val):
 
     # Run the compiled file
-    run_command = f"{output_name}"
+    run_command = f"{output_name} {str(input_val)}"
     subprocess.call(run_command, shell=True)
 
     # Run gcov on the .cpp file
@@ -108,7 +100,6 @@ def run_cpp_coverage(cpp_file):
             times_run = 0
             try:
                 times_run = int(parts[0].strip())
-                # When the line isn't run it wouldn't show as 0 but as -
             except:
                 times_run = 0
             coverage_info[line_number] = times_run
@@ -158,26 +149,31 @@ def check_regression(x, y, reg_type):
         print("No, it is not")
 
 if __name__ == '__main__':
-    # Get the coverage info by parsing gcov files
-    coverage_info = run_cpp_coverage(cpp_file)
-    coverage_data = list(coverage_info.values())
-
-    # Create an X axis
-    map_data_x = [i+1 for i in range(len(coverage_data))]
-    print(coverage_data)
-
-    # Show the bar graph
-    plt.bar(map_data_x, coverage_data)
+    test_max = 10
+    prepare_cpp_coverage(cpp_file)
+    run_data = []
+    for n in range(10):
+        # Running it 10 times
+        coverage_info = run_cpp_coverage(cpp_file, n)
+        coverage_data = list(coverage_info.values())
+        max_runtime = max(coverage_data)
+        run_data.append(max_runtime)
+    x_data = [i+1 for i in range(len(run_data))]
+    check_regression(x_data, run_data, "2^n")
+    plt.plot(x_data, run_data)
     plt.show()
 
-    # This graph is NOT a runtime v N graph, but a heatmap of the current N
-    # To show runtime v N currently, manually fill out the data
-    # examples are in discord.
-    # manual_data = [3, 3, 5, 9, 15, 25, 41, 67, 109, 177, 287, 465, 753, 1219, 1973]
+    #manual_data = [3, 3, 5, 9, 15, 25, 41, 67, 109, 177, 287, 465, 753, 1219, 1973, 3193, 5167, 8361, 13529, 21891, 35421, 57313, 92735, 150049, 242785, 2692537, 29860703, 331160281, 3672623805]
+    #manual_data_capped = [3, 3, 5, 9, 15, 25, 41, 67, 109, 177, 287, 465, 753, 1219, 1973, 3193, 5167, 8361, 13529, 21891, 35421, 57313, 92735, 150049, 242785]
+    #manual_data_time = [2.21, 1.61, 1.68, 2.69, 1.81, 1.70, 1.78, 2.26, 3.03, 2.03, 1.75, 2.49, 3.02, 2.41, 3.10, 6.32, 3.55, 1.61, 1.63, 5.21, 1.74, 2.82, 1.76, 1.74, 3.12, 4.74, 4.31, 5.12, 9.39]
     # manual_data_x = [1 * (i+1) for i in range(len(manual_data))]
-    check_regression(manual_data_x, manual_data, "n^2")
-    # plt.plot(manual_data_x, manual_data)
-    # plt.show()
+    #manual_data_x = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 30, 35, 40, 45]
+    #manual_data_x_capped = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+    #map_data_x = [i+1 for i in range(len(coverage_data))]
+    #plt.bar(map_data_x, coverage_data)
+    #plt.plot(manual_data_x_capped, manual_data_capped)
+    # print(max(coverage_data))
+    #check_regression(manual_data_x_capped, manual_data_capped, "2^n")
     
     
 
