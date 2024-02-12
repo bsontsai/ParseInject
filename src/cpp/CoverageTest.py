@@ -1,43 +1,14 @@
 import subprocess
 import matplotlib.pyplot as plt
+import numpy as np
+from scipy import stats
 import os
+import time
 
-cpp_file = "testprogram2.cpp"  # replace with needed .cpp file
+cpp_file = "testprogram.cpp"  # replace with needed .cpp file
 gpp_path = "C:\\MinGW\\bin\\" # If G++ already installed and added to path, only keep 'g++'
 output_name = "test.exe" # the name of the executable
 
-"""
-Semiauto Runtime Analyzer through gCov Coverage Testing
-by Jiarui Xie
-
-Requirements: 
-This approach depends on setting up the environment
-gcc package is installed (no need to add to path), including g++ and gcov
-
-Descriptinon:
-Code coverage tests tells us which part of the code has been executed and how many times.
-To properly test code coverage, optimization should be disabled, hence the flag -O0
-I believe we can take advantage of this debug tool, instead of destructively inserting probes as counters.
-The returned gcov file has the following format each line:
-# of times this line ran : line # : the original line
-We will split each line by ':', and that gives us the number of times this line ran.
-Save such data, change the N, then compile and run the test again.
-With increase in N, there's also increase in the number of run times
-And thus we have a runtimes v N function at our hands, the only thing left is regression.
-
-Highlights:
-Works on manually changing the number N, no optimazation nor sudden drops observed when increasing N
-Works on recursive functions
-
-To-do:
-1. The code automatically compiles C program, grep results and parse it. But manual change of N should be added too.
-2. Should number of operations each line be counted? Theoretically they should be scalar but not sure.
-3. Regression based on the given data.
-4. Potentially: segment the array into different parts to give students feeback on which part went overboard.
-"""
-
-# helper function to record run time
-# not to be confused with runtime.
 def record_runtime(func):
     def wrapper(*args, **kwargs):
         start_time = time.time()
@@ -47,64 +18,6 @@ def record_runtime(func):
         return result
     # if need to record runtime, add @record_runtime in front of functions
     return wrapper
-    
-# prepare the code coverage
-def prepare_cpp_coverage(cpp_file):
-    code_command = f"chcp 65001"
-    subprocess.call(code_command, shell=True)
-    # Turn GBK to UTF-8
-    # Remove or comment out this line if running on US computer.
-
-    test_command = f"chdir"
-    # subprocess.call(test_command, shell=True)
-    # Test command, remove if not running on Windows
-
-    test_command = f"ls"
-    # subprocess.call(test_command, shell=True)
-    # Would not work on Windows
-
-    test_command = f"dir"
-    # subprocess.call(test_command, shell=True)
-    # Equivalent of ls on Linux
-
-    test_command = gpp_path + f"g++ --version"
-    # subprocess.call(test_command, shell=True)
-    # Is gcc installed?
-
-    # Compile the .cpp file with g++
-    compile_command = gpp_path + f"g++ -fprofile-arcs -ftest-coverage -O0 -o {output_name} {cpp_file}"
-    subprocess.call(compile_command, shell=True)
-
-    test_command = f"dir"
-    # subprocess.call(test_command, shell=True)
-
-# does the code coverage.
-def run_cpp_coverage(cpp_file, input_val):
-
-    # Run the compiled file
-    run_command = f"{output_name} {str(input_val)}"
-    subprocess.call(run_command, shell=True)
-
-    # Run gcov on the .cpp file
-    gcov_command = gpp_path + f"gcov {cpp_file}"
-    subprocess.call(gcov_command, shell=True)
-
-    # Parse the .gcov file for coverage info
-    coverage_info = {}
-    with open(f"{cpp_file}.gcov", 'r') as f:
-        for line in f:
-            if line.startswith('    #####'):
-                continue
-            parts = line.split(':')
-            line_number = int(parts[1])
-            times_run = 0
-            try:
-                times_run = int(parts[0].strip())
-            except:
-                times_run = 0
-            coverage_info[line_number] = times_run
-
-    return coverage_info
 
 def check_regression(x, y, reg_type):
     # Perform linear regression
@@ -148,18 +61,78 @@ def check_regression(x, y, reg_type):
     else:
         print("No, it is not")
 
+def prepare_cpp_coverage(cpp_file):
+    code_command = f"chcp 65001"
+    subprocess.call(code_command, shell=True)
+    # Turn GBK to UTF-8
+    # Remove or comment out this line if running on US computer.
+
+    test_command = f"chdir"
+    # subprocess.call(test_command, shell=True)
+    # Test command, remove if not running on Windows
+
+    test_command = f"ls"
+    # subprocess.call(test_command, shell=True)
+    # Would not work on Windows
+
+    test_command = f"dir"
+    # subprocess.call(test_command, shell=True)
+    # Equivalent of ls on Linux
+
+    test_command = gpp_path + f"g++ --version"
+    # subprocess.call(test_command, shell=True)
+    # Is gcc installed?
+
+    # Compile the .cpp file with g++
+    compile_command = gpp_path + f"g++ -fprofile-arcs -ftest-coverage -O0 -o {output_name} {cpp_file}"
+    subprocess.call(compile_command, shell=True)
+
+    test_command = f"dir"
+    # subprocess.call(test_command, shell=True)
+
+def run_cpp_coverage(cpp_file, input_val):
+
+    # Run the compiled file
+    run_command = f"{output_name} {str(input_val)}"
+    subprocess.call(run_command, shell=True)
+
+    # Run gcov on the .cpp file
+    gcov_command = gpp_path + f"gcov {cpp_file}"
+    subprocess.call(gcov_command, shell=True)
+
+    # Parse the .gcov file for coverage info
+    coverage_info = {}
+    with open(f"{cpp_file}.gcov", 'r') as f:
+        for line in f:
+            if line.startswith('    #####'):
+                continue
+            parts = line.split(':')
+            line_number = int(parts[1])
+            times_run = 0
+            try:
+                times_run = int(parts[0].strip())
+            except:
+                times_run = 0
+            coverage_info[line_number] = times_run
+
+    return coverage_info
+
 if __name__ == '__main__':
-    test_max = 10
+    test_max = 25
     prepare_cpp_coverage(cpp_file)
     run_data = []
-    for n in range(10):
-        # Running it 10 times
+    accu_data = 0
+    for n in range(test_max):
+        # Running it test_max times
         coverage_info = run_cpp_coverage(cpp_file, n)
         coverage_data = list(coverage_info.values())
-        max_runtime = max(coverage_data)
+        del coverage_data[-1]
+        max_runtime = max(coverage_data) - accu_data
+        accu_data = accu_data + max_runtime
         run_data.append(max_runtime)
+        print("ran " + str(n) + " times, got " + str(max_runtime))
     x_data = [i+1 for i in range(len(run_data))]
-    check_regression(x_data, run_data, "2^n")
+    check_regression(x_data, run_data, "n")
     plt.plot(x_data, run_data)
     plt.show()
 
@@ -174,8 +147,6 @@ if __name__ == '__main__':
     #plt.plot(manual_data_x_capped, manual_data_capped)
     # print(max(coverage_data))
     #check_regression(manual_data_x_capped, manual_data_capped, "2^n")
-    
-    
 
 
 
